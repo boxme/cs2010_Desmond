@@ -91,8 +91,11 @@ class Main {
             else {
             	end = start;
             }
-            if (lang_index.get(start_lang) == null) lang_index.put(start_lang, start);
-            if (lang_index.get(end_lang) == null) lang_index.put(end_lang, end);
+            if (lang_index.get(start_lang) == null || lang_index.get(end_lang) == null) {
+            	N = scanner.nextInt();
+                System.out.println("impossivel");
+                continue;
+            }
 
             for (String next : dict.get(lang_index.get(start_lang)))
                 graph.get(start).add(words.get(next));

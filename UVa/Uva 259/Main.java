@@ -1,8 +1,9 @@
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.Scanner;
 
 class UVa259{}
 
@@ -24,33 +25,38 @@ class Main {
     }
 
     void run() throws Exception {
-        Scanner scanner = new Scanner(System.in);
-        while (true) {
+    	BufferedReader scanner = new BufferedReader(new InputStreamReader(System.in));
+        while (scanner.ready()) {
             res = new int[38][38];
             adj_list = new ArrayList<ArrayList<Integer>>();
             list_app = new ArrayList<Integer>();
 
-            for (int i = 0; i < 37; ++i) {
+            for (int i = 0; i < 38; ++i) {
                 adj_list.add(new ArrayList<Integer>());
-                if (i >= 27) {
+                if (i >= 27 && i < 37) {
                     adj_list.get(i).add(37);
                     res[i][37] = 1;
                 }
             }
+            
+            for (int i = 27; i < 37; ++i)
+            	adj_list.get(37).add(i);
 
             total_applications = 0;
-
-            while (true) {
-            	String input = scanner.nextLine();
+            String input = "";
+            
+            while (scanner.ready() && !(input = scanner.readLine()).equals("")) {
                 if (input.compareTo("") == 0) break;
                 res[0][input.charAt(0) - 64] += Character.getNumericValue(input.charAt(1));
                 total_applications += Character.getNumericValue(input.charAt(1));
-                adj_list.get(0).add(input.charAt(0) - 64);
+                adj_list.get(0).add(input.charAt(0) - 64);		//Forward flow
+                adj_list.get(input.charAt(0) - 64).add(0);		//Backward flow
                 list_app.add(input.charAt(0) - 64);
 
                 for (int i = 3; i < input.length() - 1; ++i) {
                     res[input.charAt(0) - 64][Character.getNumericValue(input.charAt(i)) + 27] = oo;
-                    adj_list.get(input.charAt(0) - 64).add(Character.getNumericValue(input.charAt(i)) + 27);
+                    adj_list.get(input.charAt(0) - 64).add(Character.getNumericValue(input.charAt(i)) + 27);	//Forward flow
+                    adj_list.get(Character.getNumericValue(input.charAt(i)) + 27).add(input.charAt(0) - 64);	//Backward flow
                 }
             }
             p = new int[38];
@@ -66,12 +72,7 @@ class Main {
                 while (!q.isEmpty()) {
                     int u = q.poll();
                     if (u == sink) break;
-//                    for (Integer v : adj_list.get(u)) {
-//                        if (taken[v] == 0 && res[u][v] > 0) {
-//                            taken[v] = 1; p[v] = u; q.offer(v);
-//                        }
-//                    }
-                    for (int v = 0; v < 38 ; ++v) {
+                    for (Integer v : adj_list.get(u)) {
                         if (taken[v] == 0 && res[u][v] > 0) {
                             taken[v] = 1; p[v] = u; q.offer(v);
                         }

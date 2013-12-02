@@ -41,9 +41,9 @@ class Main {
             total_applications = 0;
 
             while (true) {
-                String input = scanner.nextLine();
+            	String input = scanner.nextLine();
                 if (input.compareTo("") == 0) break;
-                res[0][input.charAt(0) - 64] = Character.getNumericValue(input.charAt(1));
+                res[0][input.charAt(0) - 64] += Character.getNumericValue(input.charAt(1));
                 total_applications += Character.getNumericValue(input.charAt(1));
                 adj_list.get(0).add(input.charAt(0) - 64);
                 list_app.add(input.charAt(0) - 64);
@@ -53,7 +53,6 @@ class Main {
                     adj_list.get(input.charAt(0) - 64).add(Character.getNumericValue(input.charAt(i)) + 27);
                 }
             }
-
             p = new int[38];
             source = 0; sink = 37; max_flow = 0;
             while (true) {
@@ -61,12 +60,18 @@ class Main {
                 min_edge = 0;
                 taken = new int[38];
                 Queue<Integer> q = new LinkedList<Integer>();
+                taken[0] = 1;
                 q.offer(source);
 
                 while (!q.isEmpty()) {
                     int u = q.poll();
                     if (u == sink) break;
-                    for (Integer v : adj_list.get(u)) {
+//                    for (Integer v : adj_list.get(u)) {
+//                        if (taken[v] == 0 && res[u][v] > 0) {
+//                            taken[v] = 1; p[v] = u; q.offer(v);
+//                        }
+//                    }
+                    for (int v = 0; v < 38 ; ++v) {
                         if (taken[v] == 0 && res[u][v] > 0) {
                             taken[v] = 1; p[v] = u; q.offer(v);
                         }
@@ -79,18 +84,17 @@ class Main {
 
             if (max_flow != total_applications) System.out.print("!");
             else {
-                taken = new int[38];
-                for (Integer i : list_app) {
-                    for (Integer j : adj_list.get(i)) {
-                        if (res[j][i] == 1 && taken[j] == 0)  {
-                            System.out.print(Character.toChars(i + 64)); 
-                        }
-                        else if (taken[j] == 0){
-                            System.out.print("_");
-                        }
-                        taken[j] = 1;
-                    }
-                }
+            	for (int i = 27; i < 37; ++i) {
+            		boolean is_computer_taken = false;
+            		for (Integer j : list_app) {
+            			if (res[i][j] == 1) {
+            				System.out.print(Character.toChars(j + 64));
+            				is_computer_taken = true;
+            				break;
+            			}
+            		}
+            		if (!is_computer_taken) System.out.print("_");
+            	}
             }
             System.out.println();
         }
@@ -98,7 +102,11 @@ class Main {
 	
     public static void main(String[] args) throws Exception{
         Main program = new Main();
-        program.run();		
+        try {
+        	program.run();
+		} catch (Exception noSuchElementException) {
+			return;
+		}    		
     }
 }
 

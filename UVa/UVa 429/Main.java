@@ -1,101 +1,101 @@
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.Set;
-import java.util.StringTokenizer;
 
-class UVa429 {
-	HashMap<String, ArrayList<String>> graph;
-	HashMap<String, Integer> visited;
-	
-	public UVa429() {
-		graph = new HashMap<String, ArrayList<String>>();
-	}
-	
-	public void insert_into_graph(String word) {
-		Set<String> keys = graph.keySet();
-		graph.put(word, new ArrayList<String>());			// Add the new word as a vertex by itself
-		
-		for (String key : keys) {
-			if (key.length() == word.length()) {
-				int num_diff = 0;
-				for (int pos = 0; pos < key.length() && num_diff < 2;pos++) {
-					if (key.charAt(pos) != word.charAt(pos)) ++num_diff;
-				}
-				if (num_diff == 1) {						// When a match is found, do not exit
-					graph.get(key).add(word);				// as there could be other words in the hashtable
-					graph.get(word).add(key);				// that could differ by 1 letter from the new word
-				}
-			}
-		}		
-	}
-	
-	public int BFS(String start, String end) {
-		visited = new HashMap<String, Integer>();
-		Queue<String> q = new LinkedList<String>();
-		q.offer(start);
-		visited.put(start, 0);
-		
-		while (!q.isEmpty()) {
-			String word = q.poll();
-			if (word.equals(end)) return visited.get(word);
-			
-			for (String string : graph.get(word)) {
-				if (!string.equals(end) && !visited.containsKey(string)) {
-					visited.put(string, visited.get(word)+1);
-					q.offer(string);
-				}
-				else if (string.equals(end)) return visited.get(word) + 1;
-			}
-		}
-		return 0;
-	}
-}
+class UVa429{}
 
 class Main {
-	
-	void run() throws Exception{
-	    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-	    PrintWriter pr = new PrintWriter(new BufferedWriter(new OutputStreamWriter(System.out)));
-	    StringTokenizer st = new StringTokenizer(br.readLine());
-	    int num_test_cases = Integer.parseInt(st.nextToken());
-	    
-	    while (num_test_cases-- > 0) {
-		    st = new StringTokenizer(br.readLine());
-		    String word = "";
-		    UVa429 compute = new UVa429();
-		    st = new StringTokenizer(br.readLine());
-		    word = st.nextToken();
-		    
-		    while (!word.equals("*")) {
-			    compute.insert_into_graph(word);
-			    st = new StringTokenizer(br.readLine());
-			    word = st.nextToken();
-		    }
-		    
-		    st = new StringTokenizer(br.readLine());
-		    while (st.hasMoreTokens()) {
-		    	String start = st.nextToken();
-		    	String end = st.nextToken();
-				pr.println(start + " " + end + " " + compute.BFS(start, end));
-			    st = new StringTokenizer(br.readLine());
-			}
-		    
-		    if (num_test_cases != 0) {
-		    	pr.println();
-		    }
-	    }
-	    pr.close();
-	}
-	
-	public static void main(String[] args) throws Exception {
-		Main program = new Main();
-		program.run();		
-	}
+    private ArrayList<ArrayList<Integer>> adj_list;
+    private ArrayList<ArrayList<String>> word_length;
+    private String start, end;
+    private HashMap<String, Integer> hashmap;
+
+    void run() throws Exception {
+        BufferedReader scanner = new BufferedReader(new InputStreamReader(System.in));
+        int TC = Integer.parseInt(scanner.readLine());
+
+        while (TC-- > 0) {
+            adj_list = new ArrayList<ArrayList<Integer>>();
+            hashmap = new HashMap<String, Integer>();
+            word_length = new ArrayList<ArrayList<String>>();
+
+            for (int i = 0; i < 250; ++i) 
+                adj_list.add(new ArrayList<Integer>());
+
+            for (int i = 0; i < 11; ++i)
+                word_length.add(new ArrayList<String>());
+
+            while (true) {
+                String word = scanner.readLine();
+                if (word.equals("*")) break;
+                int index = hashmap.size();
+                hashmap.put(word, index);
+                int len = word.length();
+                if (word_length.get(len).isEmpty()) {
+                    word_length.get(len).add(word);
+                }
+                else {
+                    for (String next : word_length.get(len)) {
+                        int diff = 0;
+                        for (int i = 0; i < next.length(); ++i) {
+                            if (next.charAt(i) != word.charAt(i)) diff++;
+                        }
+                        if (diff == 1) {
+                            adj_list.get(index).add(hashmap.get(next));
+                            adj_list.get(hashmap.get(next)).add(index);
+                        }
+                    }
+                    word_length.get(len).add(word);
+                }
+            }
+            String input = "";
+            while (scanner.ready() && !(input = scanner.readLine()).equals("")) {
+                if (input.compareTo("") == 0) break;
+                String[] output = input.split(" ");
+                start = output[0]; end = output[1];
+                int source = hashmap.get(start); int dest = hashmap.get(end);
+                Queue<Edge> q = new LinkedList<Edge>();
+                int[] taken = new int[210];
+                taken[source] = 1;
+                q.offer(new Edge(0, source, 0));
+                int answer = 0;
+                while (!q.isEmpty()) {
+                    Edge current = q.poll();
+                    if (current.v == dest) {
+                        answer = current.weight; break;
+                    }
+                    for (Integer next : adj_list.get(current.v)) {
+                        if (taken[next] == 0) {
+                            taken[next] = 1;
+                            q.offer(new Edge(0, next, current.weight+1));
+                        }
+                    }
+                }
+                System.out.printf("%s %s %d\n", start, end, answer);
+            }
+            if (TC > 0) System.out.println();
+        }
+    }
+
+    public static void main(String[] args) throws Exception{
+        Main program = new Main();
+        program.run();		
+    }
 }
+
+class Edge implements Comparable<Edge> {
+    Integer u, v, weight;
+
+    public Edge(int u, int v, int weight) {
+        this.u = u; this.v = v; this.weight = weight;
+    }
+
+    @Override 
+    public int compareTo(Edge other) {
+        return this.weight - other.weight;
+    }
+}
+
